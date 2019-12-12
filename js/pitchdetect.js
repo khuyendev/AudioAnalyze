@@ -1,5 +1,3 @@
-
-
 window.AudioContext = window.AudioContext || window.webkitAudioContext;
 
 var audioContext = null;
@@ -23,7 +21,7 @@ window.onload = function () {
     audioContext = new AudioContext();
     MAX_SIZE = Math.max(4, Math.floor(audioContext.sampleRate / 5000));	// corresponds to a 5kHz signal
     var request = new XMLHttpRequest();
-    request.open("GET", "./js/audio.mp3", true);
+    request.open("GET", "./js/Cut_audio.mp3", true);
     request.responseType = "arraybuffer";
     request.onload = function () {
         audioContext.decodeAudioData(request.response, function (buffer) {
@@ -86,17 +84,15 @@ function error() {
 
 function getUserMedia(dictionary, callback) {
     try {
-        navigator.getUserMedia =
-            navigator.getUserMedia ||
-            navigator.webkitGetUserMedia ||
-            navigator.mozGetUserMedia;
-        navigator.getUserMedia(dictionary, callback, error);
+
+        navigator.mediaDevices.getUserMedia(dictionary, callback, error);
     } catch (e) {
         alert('getUserMedia threw exception :' + e);
     }
 }
 
 function gotStream(stream) {
+    console.log("sss")
     // Create an AudioNode from the stream.
     mediaStreamSource = audioContext.createMediaStreamSource(stream);
 
@@ -366,12 +362,23 @@ function updatePitch(time) {
     if (!intervalPlayBack) {
         intervalPlayBack = setInterval(() => {
             const avg = this.valueAtTimeInterval.reduce((p, c) => p + c, 0) / this.valueAtTimeInterval.length;
-            this.valueAtTimeInterval = [];
-            if (avg) {
+            if (avg === -1) {
+                var note = noteFromPitch(avg);
                 valueOutput.push(parseInt(avg))
-                this.pithArray.append(parseInt(avg)+",");
-                this.duration.innerHTML = (valueOutput.length * 100);
+                this.pithArray.append((noteStrings[note % 12] || "-") + ",");
+                this.duration.innerHTML = (valueOutput.length * 30);
+            } else {
+                const filterMuted = this.valueAtTimeInterval.filter((item) => {
+                    return item !== -1;
+                })
+                const avg = filterMuted.reduce((p, c) => p + c, 0) / filterMuted.length;
+                var note = noteFromPitch(avg);
+                valueOutput.push(parseInt(avg))
+                this.pithArray.append((noteStrings[note % 12]|| "-") + ",");
+                this.duration.innerHTML = (valueOutput.length * 30);
             }
+
+            this.valueAtTimeInterval = [];
         }, 100)
     }
     valueAtTimeInterval.push(ac)
