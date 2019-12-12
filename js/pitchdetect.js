@@ -98,7 +98,7 @@ function gotStream(stream) {
 
     // Connect it to the destination.
     analyser = audioContext.createAnalyser();
-    analyser.fftSize = 8192;
+    analyser.fftSize = 2048;
     mediaStreamSource.connect(analyser);
     updatePitch();
 }
@@ -118,7 +118,7 @@ function toggleOscillator() {
     sourceNode = audioContext.createOscillator();
 
     analyser = audioContext.createAnalyser();
-    analyser.fftSize = 8192;
+    analyser.fftSize = 2048;
     sourceNode.connect(analyser);
     analyser.connect(audioContext.destination);
     sourceNode.start(0);
@@ -173,7 +173,7 @@ function togglePlayback() {
     sourceNode.loop = true;
 
     analyser = audioContext.createAnalyser();
-    analyser.fftSize = 8192;
+    analyser.fftSize = 2048;
     sourceNode.connect(analyser);
     analyser.connect(audioContext.destination);
     sourceNode.start(0);
@@ -186,7 +186,7 @@ function togglePlayback() {
 
 var rafID = null;
 var tracks = null;
-var buflen = 1024;
+var buflen = 2048;
 var buf = new Float32Array(buflen);
 
 var noteStrings = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
@@ -358,32 +358,30 @@ function updatePitch(time) {
     analyser.getFloatTimeDomainData(buf);
     // output.push(buf)
     var ac = autoCorrelate(buf, audioContext.sampleRate);
-    var n = noteFromPitch(ac);
-    this.pithArray.append((noteStrings[n % 12] || "-") + ",");
-    // // TODO: Paint confidence meter on canvasElem here.
-    // if (!intervalPlayBack) {
-    //     intervalPlayBack = setInterval(() => {
-    //         const avg = this.valueAtTimeInterval.reduce((p, c) => p + c, 0) / this.valueAtTimeInterval.length;
-    //         if (avg === -1) {
-    //             var note = noteFromPitch(avg);
-    //             valueOutput.push(parseInt(avg))
-    //             this.pithArray.append((noteStrings[note % 12] || "-") + ",");
-    //             this.duration.innerHTML = (valueOutput.length * 30);
-    //         } else {
-    //             const filterMuted = this.valueAtTimeInterval.filter((item) => {
-    //                 return item !== -1;
-    //             })
-    //             const avg = filterMuted.reduce((p, c) => p + c, 0) / filterMuted.length;
-    //             var note = noteFromPitch(avg);
-    //             valueOutput.push(parseInt(avg))
-    //             this.pithArray.append((noteStrings[note % 12]|| "-") + ",");
-    //             this.duration.innerHTML = (valueOutput.length * 30);
-    //         }
-    //
-    //         this.valueAtTimeInterval = [];
-    //     }, 100)
-    // }
-    // valueAtTimeInterval.push(ac)
+    // TODO: Paint confidence meter on canvasElem here.
+    if (!intervalPlayBack) {
+        intervalPlayBack = setInterval(() => {
+            const avg = this.valueAtTimeInterval.reduce((p, c) => p + c, 0) / this.valueAtTimeInterval.length;
+            if (avg === -1) {
+                var note = noteFromPitch(avg);
+                valueOutput.push(parseInt(avg))
+                this.pithArray.append((noteStrings[note % 12] || "-") + ",");
+                this.duration.innerHTML = (valueOutput.length * 30);
+            } else {
+                const filterMuted = this.valueAtTimeInterval.filter((item) => {
+                    return item !== -1;
+                })
+                const avg = filterMuted.reduce((p, c) => p + c, 0) / filterMuted.length;
+                var note = noteFromPitch(avg);
+                valueOutput.push(parseInt(avg))
+                this.pithArray.append((noteStrings[note % 12]|| "-") + ",");
+                this.duration.innerHTML = (valueOutput.length * 30);
+            }
+
+            this.valueAtTimeInterval = [];
+        }, 100)
+    }
+    valueAtTimeInterval.push(ac)
     if (DEBUGCANVAS) {  // This draws the current waveform, useful for debugging
         waveCanvas.clearRect(0, 0, 512, 256);
         waveCanvas.strokeStyle = "red";
