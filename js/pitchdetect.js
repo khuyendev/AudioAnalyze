@@ -365,7 +365,7 @@ function updatePitch(time) {
             if (avg === -1) {
                 var note = noteFromPitch(avg);
                 valueOutput.push(parseInt(avg))
-                this.pithArray.append((noteStrings[note % 12] || "-") + ",");
+                this.pithArray.append(avg+ ",");
                 this.duration.innerHTML = (valueOutput.length * 30);
             } else {
                 const filterMuted = this.valueAtTimeInterval.filter((item) => {
@@ -374,7 +374,7 @@ function updatePitch(time) {
                 const avg = filterMuted.reduce((p, c) => p + c, 0) / filterMuted.length;
                 var note = noteFromPitch(avg);
                 valueOutput.push(parseInt(avg))
-                this.pithArray.append((noteStrings[note % 12]|| "-") + ",");
+                this.pithArray.append(avg + ",");
                 this.duration.innerHTML = (valueOutput.length * 30);
             }
 
